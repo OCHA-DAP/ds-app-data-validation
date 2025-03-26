@@ -1,6 +1,7 @@
 import ocha_stratus as stratus
 import pandas as pd
 from dash.dependencies import Input, Output, State
+from rasterio.errors import RasterioIOError
 from sqlalchemy import text
 
 from constants import DF_ISO3, STAGE
@@ -83,6 +84,8 @@ def register_callbacks(app):
             df = pd.DataFrame(data)
             if dataset == "SEAS5":
                 return plot_utils.plot_seas5_timeseries(df, issued_date, stat)
+        elif data == []:
+            return plot_utils.blank_plot("No data available")
         return plot_utils.blank_plot("Select AOI from dropdowns")
 
     @app.callback(
@@ -99,7 +102,10 @@ def register_callbacks(app):
             gdf = gdf[gdf[f"ADM{adm_level}_PCODE"] == pcode]
 
             # Get the seas5 rasters
-            da = seas5.open_seas5_rasters(issue_date, gdf)
+            try:
+                da = seas5.open_seas5_rasters(issue_date, gdf)
+            except RasterioIOError:
+                return plot_utils.blank_plot("No data available")
             if raster_display == "upsampled":
                 da = raster.upsample_raster(da)
             try:

@@ -1,6 +1,6 @@
 import ocha_stratus as stratus
 
-from constants import STAGE
+from src.constants import STAGE
 
 
 def load_codab_from_blob(iso3: str, admin_level: int = 0):

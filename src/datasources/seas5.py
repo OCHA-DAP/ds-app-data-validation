@@ -10,7 +10,9 @@ def open_seas5_cog(issued_date_str: str, lt: int):
     blob_name = (
         f"seas5/monthly/processed/precip_em_i{issued_date_str}_lt{lt}.tif"
     )
-    stratus.open_blob_cog(blob_name, stage=STAGE, container_name="raster")
+    return stratus.open_blob_cog(
+        blob_name, stage=STAGE, container_name="raster"
+    )
 
 
 def open_seas5_rasters(issued_date_str: str, gdf):

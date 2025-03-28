@@ -1,4 +1,4 @@
-# ds-app-data-validation
+# DSCI: Data Validation App
 
 This repo holds a Dash application for basic visualization and validation of outputs from the Data Science Team data pipelines. The app is
 deployed via Azure App Service.

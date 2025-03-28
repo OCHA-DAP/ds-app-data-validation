@@ -107,7 +107,7 @@ def register_callbacks(app):
             except RasterioIOError:
                 return plot_utils.blank_plot("No data available")
             if raster_display == "upsampled":
-                da = da.rio.clip(gdf.geometry.buffer(5))  # 5 degree buffer
+                da = da.rio.clip(gdf.geometry, all_touched=True)
                 da = raster.upsample_raster(da)
             try:
                 da = da.rio.clip(gdf.geometry).sel(date=issue_date)

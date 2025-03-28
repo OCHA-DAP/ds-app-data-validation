@@ -38,9 +38,8 @@ def get_raster_stats(iso3, pcode, issue_date):
         WHERE
             EXTRACT(MONTH FROM issued_date) = EXTRACT(MONTH FROM DATE :issued_date) AND
             EXTRACT(DAY FROM issued_date) = EXTRACT(DAY FROM DATE :issued_date) AND
-            issued_date >= DATE :issued_date - INTERVAL '40 YEAR' AND
-            pcode=:pcode AND
-            iso3=:iso3
+            iso3=:iso3 AND
+            pcode=:pcode
         ORDER BY issued_date, leadtime;
         """
     )

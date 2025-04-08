@@ -69,6 +69,11 @@ def plot_seas5_timeseries(df, issued_date, stat="mean"):
                 mode="lines",
                 name=str(year),
                 line=dict(color=color, width=width),
+                hovertemplate="<b>Valid Date:</b> %{customdata[0]|%Y-%m-%d}<br>"
+                + "<b>Leadtime:</b> %{x} months<br>"
+                + "<b>Issued Date:</b> %{customdata[1]|%Y-%m-%d}<br>"
+                + "<b>Value:</b> %{y:.3f}<extra></extra>",
+                customdata=year_data[["valid_date", "issued_date"]].values,
             )
         )
 

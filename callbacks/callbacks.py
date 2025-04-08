@@ -1,15 +1,28 @@
+import dash
 import ocha_stratus as stratus
 import pandas as pd
 from dash.dependencies import Input, Output, State
 from rasterio.errors import RasterioIOError
 from sqlalchemy import text
 
-from constants import DF_ISO3, STAGE
+from constants import STAGE
 from src.datasources import codab, seas5
 from src.utils import date_utils, plot_utils, raster
 
 
 def register_callbacks(app):
+    @app.callback(
+        Output("iso3-data", "data"), Input("interval-component", "n_intervals")
+    )
+    def load_iso3_data(_):
+        print("Loading ISO3 data...")
+        engine = stratus.get_engine(STAGE)
+        with engine.connect() as conn:
+            df_iso3 = pd.read_sql(
+                "select iso3, max_adm_level, floodscan from iso3", con=conn
+            )
+        return df_iso3.to_dict()
+
     @app.callback(
         Output("issue-date-dropdown", "options"),
         Output("issue-date-dropdown", "value"),
@@ -20,15 +33,33 @@ def register_callbacks(app):
         return dates, dates[0]
 
     @app.callback(
-        Output("adm-level-dropdown", "options"),
-        Output("adm-level-dropdown", "value"),
-        Input("iso3-dropdown", "value"),
+        Output("iso3-dropdown", "options"),
+        Output("iso3-dropdown", "value"),
+        Input("dataset-dropdown", "value"),
+        Input("iso3-data", "data"),
     )
-    def update_adm_level(iso3):
-        max_adm_level = DF_ISO3.loc[
-            DF_ISO3["iso3"] == iso3, "max_adm_level"
-        ].values[0]
-        return list(range(max_adm_level + 1)), None
+    def update_iso3(dataset, iso3_data):
+        if iso3_data:
+            df_iso3 = pd.DataFrame.from_dict(iso3_data)
+            if dataset.lower() == "floodscan":
+                df_iso3 = df_iso3[df_iso3["floodscan"]]
+            iso3s = list(df_iso3["iso3"])
+            return iso3s, iso3s[0]
+        return dash.no_update, dash.no_update
+
+    @app.callback(
+        Output("adm-level-dropdown", "options"),
+        Input("iso3-dropdown", "value"),
+        Input("iso3-data", "data"),
+    )
+    def update_adm_level(iso3, iso3_data):
+        if iso3_data:
+            df_iso3 = pd.DataFrame.from_dict(iso3_data)
+            max_adm_level = df_iso3.loc[
+                df_iso3["iso3"] == iso3, "max_adm_level"
+            ].values[0]
+            return list(range(max_adm_level + 1))
+        return dash.no_update
 
     @app.callback(
         Output("pcode-dropdown", "options"),

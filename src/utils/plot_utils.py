@@ -105,7 +105,20 @@ def plot_cogs(da):
         template="simple_white",
         facet_col=0,
         facet_col_wrap=4,
+        labels={
+            "color": "mm/day"  # TODO: Hard-coded units
+        },
     )
+    for annotation in fig.layout.annotations:
+        lead_time = annotation.text.split("=")[1]
+        annotation.text = (
+            f"Leadtime: {lead_time} months"  # TODO: Hard-coded units
+        )
+
+    fig.update_traces(
+        hovertemplate="%{z:.4f} mm/day<extra></extra>"  # TODO: Hard-coded units
+    )
+
     fig.update_layout(
         margin={"l": 20, "r": 0, "t": 50, "b": 10},
         height=350,
@@ -116,6 +129,5 @@ def plot_cogs(da):
         title="Pixelwise precipitation (mm/day) across leadtimes",
     )
     fig.update_xaxes(showline=False, ticks="", showticklabels=False)
-
     fig.update_yaxes(showline=False, ticks="", showticklabels=False)
     return fig

@@ -89,6 +89,7 @@ def register_callbacks(app):
                 con=conn,
                 params={"iso3": iso3, "adm_level": adm_level},
             )
+        df_pcodes = df_pcodes.sort_values("name", ascending=True)
         options = [
             {"label": row["name"], "value": row["pcode"]}
             for _, row in df_pcodes.iterrows()

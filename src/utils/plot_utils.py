@@ -73,6 +73,8 @@ def plot_floodscan_timeseries(df, issued_date, stat="mean"):
                 mode="lines",
                 name=str(year_end),
                 line=dict(color=color, width=width),
+                hovertemplate="<b>Valid Date:</b> %{x}<br>"
+                + "<b>Value:</b> %{y:.3f}<extra></extra>",
             )
         )
 
@@ -103,7 +105,7 @@ def plot_floodscan_timeseries(df, issued_date, stat="mean"):
             family="Source Sans Pro, sans-serif",
             color="#888888",  # Colors all text
         ),
-        title=f"{stat.capitalize} of Floodscan flooded fraction",
+        title=f"{stat.capitalize()} of Floodscan flooded fraction",
     )
 
     return fig
@@ -127,6 +129,11 @@ def plot_seas5_timeseries(df, issued_date, stat="mean"):
                 mode="lines",
                 name=str(year),
                 line=dict(color=color, width=width),
+                hovertemplate="<b>Valid Date:</b> %{customdata[0]|%Y-%m-%d}<br>"
+                + "<b>Leadtime:</b> %{x} months<br>"
+                + "<b>Issued Date:</b> %{customdata[1]|%Y-%m-%d}<br>"
+                + "<b>Value:</b> %{y:.3f}<extra></extra>",
+                customdata=year_data[["valid_date", "issued_date"]].values,
             )
         )
 
@@ -152,6 +159,8 @@ def plot_seas5_timeseries(df, issued_date, stat="mean"):
 
 
 def plot_cogs(da, title):
+    units = da.attrs["units"]
+    # Eg. if leadtime dimension
     if len(da.shape) == 3:
         fig = px.imshow(
             da.values,
@@ -159,12 +168,14 @@ def plot_cogs(da, title):
             template="simple_white",
             facet_col=0,
             facet_col_wrap=4,
+            labels={"color": units},
         )
     elif len(da.shape) == 2:
         fig = px.imshow(
             da.values,
             color_continuous_scale="Blues",
             template="simple_white",
+            labels={"color": units},
         )
     fig.update_layout(
         margin={"l": 20, "r": 0, "t": 50, "b": 10},
@@ -175,7 +186,14 @@ def plot_cogs(da, title):
         ),
         title=title,
     )
-    fig.update_xaxes(showline=False, ticks="", showticklabels=False)
 
+    # This only shows up now for SEAS5
+    leadtime_units = da.attrs["leadtime_units"]
+    for annotation in fig.layout.annotations:
+        lead_time = annotation.text.split("=")[1]
+        annotation.text = f"Leadtime: {lead_time} {leadtime_units}"
+
+    fig.update_traces(hovertemplate=f"%{{z:.4f}} {units}<extra></extra>")
+    fig.update_xaxes(showline=False, ticks="", showticklabels=False)
     fig.update_yaxes(showline=False, ticks="", showticklabels=False)
     return fig

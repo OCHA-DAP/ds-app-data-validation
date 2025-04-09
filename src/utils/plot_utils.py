@@ -103,6 +103,7 @@ def plot_floodscan_timeseries(df, issued_date, stat="mean"):
             family="Source Sans Pro, sans-serif",
             color="#888888",  # Colors all text
         ),
+        title=f"{stat.capitalize} of Floodscan flooded fraction",
     )
 
     return fig
@@ -135,7 +136,7 @@ def plot_seas5_timeseries(df, issued_date, stat="mean"):
         yaxis_title=stat,
         legend_title_text="Year",
         height=350,
-        title=f"{stat.capitalize()} of precipitation (mm/day) across forecast leadtimes",
+        title=f"{stat.capitalize()} of SEAS5 precipitation (mm/day) across forecast leadtimes",
     )
 
     fig.update_layout(

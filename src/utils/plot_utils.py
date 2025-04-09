@@ -51,6 +51,49 @@ def blank_plot(center_text=None):
     return fig
 
 
+def plot_floodscan_timeseries(df, issued_date, stat="mean"):
+    cur_year = datetime.strptime(issued_date, "%Y-%m-%d").year
+
+    fig = go.Figure()
+    unique_group = sorted(df["group"].unique())
+
+    # Add a trace for each year
+    for group in unique_group:
+        year_data = df[df["group"] == group]
+        year_end = list(year_data["valid_year"])[-1]
+
+        color = "#c25048" if year_end == cur_year else "#f7a29c"
+        width = 4 if year_end == cur_year else 1
+
+        fig.add_trace(
+            go.Scatter(
+                x=year_data["month_day"],
+                y=year_data[stat],
+                mode="lines",
+                name=str(year_end),
+                line=dict(color=color, width=width),
+            )
+        )
+
+    fig.update_layout(
+        template="simple_white",
+        xaxis_title="Date",
+        yaxis_title=stat,
+        legend_title_text="Year",
+    )
+
+    fig.update_layout(
+        legend=dict(traceorder="reversed"),
+        margin={"l": 0, "r": 0, "t": 50, "b": 10},
+        font=dict(
+            family="Source Sans Pro, sans-serif",
+            color="#888888",  # Colors all text
+        ),
+    )
+
+    return fig
+
+
 def plot_seas5_timeseries(df, issued_date, stat="mean"):
     cur_year = datetime.strptime(issued_date, "%Y-%m-%d").year
 

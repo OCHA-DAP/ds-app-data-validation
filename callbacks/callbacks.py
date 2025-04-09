@@ -98,31 +98,40 @@ def register_callbacks(app):
 
     @app.callback(
         Output("raster-stats-data", "data"),
+        Output("chart-leadtime-series", "figure"),
         Input("dataset-dropdown", "value"),
         Input("iso3-dropdown", "value"),
         Input("adm-level-dropdown", "value"),
         Input("pcode-dropdown", "value"),
         Input("issue-date-dropdown", "value"),
+        Input("band-select", "value"),
     )
-    def get_raster_stats(dataset, iso3, adm_level, pcode, issue_date):
+    def get_raster_stats(dataset, iso3, adm_level, pcode, issue_date, band):
         if dataset and iso3 and adm_level and pcode and issue_date:
             if dataset == "seas5":
                 df = seas5.get_raster_stats(iso3, pcode, issue_date)
-                return df.to_dict("records")
-        return None
+            elif dataset == "floodscan":
+                df = floodscan.get_raster_stats(iso3, pcode, issue_date, band)
+            return df.to_dict("records"), dash.no_update
+        return None, dash.no_update
 
     @app.callback(
-        Output("chart-leadtime-series", "figure"),
+        Output("chart-leadtime-series", "figure", allow_duplicate=True),
         Input("raster-stats-data", "data"),
         Input("stat-dropdown", "value"),
         State("dataset-dropdown", "value"),
         State("issue-date-dropdown", "value"),
+        prevent_initial_call=True,
     )
     def plot_raster_stats(data, stat, dataset, issued_date):
         if data:
             df = pd.DataFrame(data)
             if dataset == "seas5":
                 return plot_utils.plot_seas5_timeseries(df, issued_date, stat)
+            elif dataset == "floodscan":
+                return plot_utils.plot_floodscan_timeseries(
+                    df, issued_date, stat
+                )
         elif data == []:
             return plot_utils.blank_plot("No data available")
         return plot_utils.blank_plot("Select AOI from dropdowns")

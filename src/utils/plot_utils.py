@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -75,6 +76,19 @@ def plot_floodscan_timeseries(df, issued_date, stat="mean"):
             )
         )
 
+    # Add a point just for the recent update
+    df["valid_date"] = pd.to_datetime(df["valid_date"])
+    df_single = df[df["valid_date"] == issued_date]
+    fig.add_trace(
+        go.Scatter(
+            x=df_single["month_day"],
+            y=df_single[stat],
+            mode="markers",
+            marker_size=15,
+            name="Selected point",
+            marker_color="#c25048",
+        )
+    )
     fig.update_layout(
         template="simple_white",
         xaxis_title="Date",

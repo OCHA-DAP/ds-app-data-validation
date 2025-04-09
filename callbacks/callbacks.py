@@ -98,7 +98,9 @@ def register_callbacks(app):
 
     @app.callback(
         Output("raster-stats-data", "data"),
-        Output("chart-leadtime-series", "figure"),
+        Output(
+            "chart-leadtime-series", "figure"
+        ),  # Just here to show loading status
         Input("dataset-dropdown", "value"),
         Input("iso3-dropdown", "value"),
         Input("adm-level-dropdown", "value"),

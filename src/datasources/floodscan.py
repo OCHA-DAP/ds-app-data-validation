@@ -65,6 +65,11 @@ def get_raster_stats(iso3, pcode, issue_date, band, date_range=10):
     df["valid_date"] = pd.to_datetime(df["valid_date"])
     df["valid_year"] = df["valid_date"].dt.year
 
+    # Check that we actually have data for the selected issue date
+    df_single = df[df["valid_date"] == issue_date]
+    if len(df_single) == 0:
+        print("No data for selected date")
+        return pd.DataFrame()
     df = df.sort_values("valid_date")
     df["group"] = (
         df["valid_date"].diff().dt.days > 30

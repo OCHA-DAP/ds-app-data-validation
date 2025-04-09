@@ -5,7 +5,6 @@ import pandas as pd
 
 # TODO: Modify for other datasets
 def get_date_range(dataset):
-    dataset = dataset.lower()
     date_ranges = {
         "seas5": {"start_date": "1981-01-01", "frequency": "MS"},
         "floodscan": {"start_date": "1998-01-12", "frequency": "D"},

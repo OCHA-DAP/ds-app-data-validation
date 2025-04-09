@@ -10,8 +10,7 @@ chart_style = {
     "border": "1px solid #eeeeee",
     "borderRadius": "5px",
 }
-
-dataset_options = ["SEAS5", "Floodscan"]
+dataset_options = {"seas5": "SEAS5", "floodscan": "Floodscan"}
 stat_options = ["mean", "median", "min", "max", "count", "sum", "std"]
 
 
@@ -38,7 +37,7 @@ def sidebar_controls(iso3_options, date_options):
                     dbc.Select(
                         id="dataset-dropdown",
                         options=dataset_options,
-                        value=dataset_options[0],
+                        value=list(dataset_options.keys())[0],
                         className="mb-3",
                     ),
                 ]

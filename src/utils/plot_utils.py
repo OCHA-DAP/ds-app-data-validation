@@ -93,14 +93,21 @@ def plot_seas5_timeseries(df, issued_date, stat="mean"):
     return fig
 
 
-def plot_cogs(da):
-    fig = px.imshow(
-        da.values,
-        color_continuous_scale="Blues",
-        template="simple_white",
-        facet_col=0,
-        facet_col_wrap=4,
-    )
+def plot_cogs(da, title):
+    if len(da.shape) == 3:
+        fig = px.imshow(
+            da.values,
+            color_continuous_scale="Blues",
+            template="simple_white",
+            facet_col=0,
+            facet_col_wrap=4,
+        )
+    elif len(da.shape) == 2:
+        fig = px.imshow(
+            da.values,
+            color_continuous_scale="Blues",
+            template="simple_white",
+        )
     fig.update_layout(
         margin={"l": 20, "r": 0, "t": 50, "b": 10},
         height=350,
@@ -108,7 +115,7 @@ def plot_cogs(da):
             family="Source Sans Pro, sans-serif",
             color="#888888",  # Colors all text
         ),
-        title="Pixelwise precipitation (mm/day) across leadtimes",
+        title=title,
     )
     fig.update_xaxes(showline=False, ticks="", showticklabels=False)
 

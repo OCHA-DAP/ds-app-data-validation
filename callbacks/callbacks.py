@@ -6,7 +6,7 @@ from rasterio.errors import RasterioIOError
 from sqlalchemy import text
 
 from constants import STAGE
-from src.datasources import codab, seas5
+from src.datasources import codab, floodscan, seas5
 from src.utils import date_utils, plot_utils, raster
 
 
@@ -27,7 +27,7 @@ def register_callbacks(app):
         Output("band-select-div", "style"), Input("dataset-dropdown", "value")
     )
     def display_band(dataset):
-        if dataset.lower() == "floodscan":
+        if dataset == "floodscan":
             return {}
         return {"display": "none"}
 
@@ -49,7 +49,7 @@ def register_callbacks(app):
     def update_iso3(dataset, iso3_data):
         if iso3_data:
             df_iso3 = pd.DataFrame.from_dict(iso3_data)
-            if dataset.lower() == "floodscan":
+            if dataset == "floodscan":
                 df_iso3 = df_iso3[df_iso3["floodscan"]]
             iso3s = list(df_iso3["iso3"])
             return iso3s, iso3s[0]
@@ -106,7 +106,7 @@ def register_callbacks(app):
     )
     def get_raster_stats(dataset, iso3, adm_level, pcode, issue_date):
         if dataset and iso3 and adm_level and pcode and issue_date:
-            if dataset == "SEAS5":
+            if dataset == "seas5":
                 df = seas5.get_raster_stats(iso3, pcode, issue_date)
                 return df.to_dict("records")
         return None
@@ -121,7 +121,7 @@ def register_callbacks(app):
     def plot_raster_stats(data, stat, dataset, issued_date):
         if data:
             df = pd.DataFrame(data)
-            if dataset == "SEAS5":
+            if dataset == "seas5":
                 return plot_utils.plot_seas5_timeseries(df, issued_date, stat)
         elif data == []:
             return plot_utils.blank_plot("No data available")
@@ -134,17 +134,31 @@ def register_callbacks(app):
         Input("pcode-dropdown", "value"),
         Input("issue-date-dropdown", "value"),
         Input("raster-display", "value"),
+        Input("band-select", "value"),
+        State("dataset-dropdown", "value"),
     )
-    def plot_cogs(iso3, adm_level, pcode, issue_date, raster_display):
+    def plot_cogs(
+        iso3, adm_level, pcode, issue_date, raster_display, band, dataset
+    ):
         if iso3 and adm_level and pcode and issue_date:
+            # Get the geo bounds
             gdf = codab.load_codab_from_blob(iso3, admin_level=adm_level)
             gdf = gdf[gdf[f"ADM{adm_level}_PCODE"] == pcode]
 
             # Get the seas5 rasters
             try:
-                da = seas5.open_seas5_rasters(issue_date, gdf)
+                if dataset == "seas5":
+                    title = "Pixelwise precipitation (mm/day) across leadtimes"
+                    da = seas5.open_seas5_rasters(issue_date)
+                elif dataset == "floodscan":
+                    title = "Pixelwise flooded fraction"
+                    da = floodscan.open_floodscan_rasters(issue_date, band)
+                else:
+                    return plot_utils.blank_plot("Invalid dataset")
             except RasterioIOError:
                 return plot_utils.blank_plot("No data available")
+
+            # Upsample if needed
             if raster_display == "upsampled":
                 da = da.rio.clip(gdf.geometry, all_touched=True)
                 da = raster.upsample_raster(da)
@@ -152,5 +166,7 @@ def register_callbacks(app):
                 da = da.rio.clip(gdf.geometry).sel(date=issue_date)
             except Exception:
                 return plot_utils.blank_plot("No data in bounds")
-            return plot_utils.plot_cogs(da)
+
+            # Now plot
+            return plot_utils.plot_cogs(da, title)
         return plot_utils.blank_plot("Select AOI from dropdowns")

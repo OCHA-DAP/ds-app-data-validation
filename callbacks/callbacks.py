@@ -24,6 +24,14 @@ def register_callbacks(app):
         return df_iso3.to_dict()
 
     @app.callback(
+        Output("band-select-div", "style"), Input("dataset-dropdown", "value")
+    )
+    def display_band(dataset):
+        if dataset.lower() == "floodscan":
+            return {}
+        return {"display": "none"}
+
+    @app.callback(
         Output("issue-date-dropdown", "options"),
         Output("issue-date-dropdown", "value"),
         Input("dataset-dropdown", "value"),

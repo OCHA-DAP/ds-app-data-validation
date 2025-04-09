@@ -101,12 +101,26 @@ def sidebar_controls(iso3_options, date_options):
             dbc.RadioItems(
                 id="raster-display",
                 options=[
-                    {"label": "Original resolution", "value": "original"},
-                    {"label": "Upsampled resolution", "value": "upsampled"},
+                    {"label": "Original", "value": "original"},
+                    {"label": "Upsampled", "value": "upsampled"},
                 ],
                 value="original",
-                inline=False,
+                inline=True,
                 className="mb-3",
+            ),
+            html.Div(
+                id="band-select-div",
+                style={"display": "none"},
+                children=[
+                    html.P("Band:"),
+                    dbc.RadioItems(
+                        id="band-select",
+                        options=["SFED", "MFED"],
+                        value="SFED",
+                        inline=True,
+                        className="mb-3",
+                    ),
+                ],
             ),
         ],
         style={

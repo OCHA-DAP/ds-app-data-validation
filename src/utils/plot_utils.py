@@ -176,6 +176,8 @@ def plot_cogs(da, title):
             color_continuous_scale="Blues",
             template="simple_white",
             labels={"color": units},
+            zmin=0,
+            zmax=1,
         )
     fig.update_layout(
         margin={"l": 20, "r": 0, "t": 50, "b": 10},

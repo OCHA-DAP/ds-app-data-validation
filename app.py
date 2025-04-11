@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from callbacks.callbacks import register_callbacks
-from constants import ISO3S, STAGE
+from constants import STAGE
 from layouts.body import plots, sidebar_controls
 from layouts.devbar import devbar
 from layouts.navbar import navbar
@@ -21,10 +21,14 @@ register_callbacks(app)
 layout = [
     navbar(title="Data Validation"),
     html.Div(
-        [sidebar_controls(ISO3S, []), plots()],
+        [sidebar_controls([], []), plots()],
         style={"display": "flex", "flexDirection": "row"},
     ),
     dcc.Store(id="raster-stats-data"),
+    dcc.Store(id="iso3-data"),
+    dcc.Interval(
+        id="interval-component", interval=500, max_intervals=1
+    ),  # Fires once, half second after page load
 ]
 
 if STAGE == "dev":

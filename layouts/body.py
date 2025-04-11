@@ -10,8 +10,7 @@ chart_style = {
     "border": "1px solid #eeeeee",
     "borderRadius": "5px",
 }
-
-dataset_options = ["SEAS5"]
+dataset_options = {"seas5": "SEAS5", "floodscan": "Floodscan"}
 stat_options = ["mean", "median", "min", "max", "count", "sum", "std"]
 
 
@@ -38,7 +37,7 @@ def sidebar_controls(iso3_options, date_options):
                     dbc.Select(
                         id="dataset-dropdown",
                         options=dataset_options,
-                        value=dataset_options[0],
+                        value=list(dataset_options.keys())[0],
                         className="mb-3",
                     ),
                 ]
@@ -60,7 +59,6 @@ def sidebar_controls(iso3_options, date_options):
                     dbc.Select(
                         id="iso3-dropdown",
                         options=iso3_options,
-                        value=iso3_options[0],
                         className="mb-3",
                     ),
                 ]
@@ -102,12 +100,26 @@ def sidebar_controls(iso3_options, date_options):
             dbc.RadioItems(
                 id="raster-display",
                 options=[
-                    {"label": "Original resolution", "value": "original"},
-                    {"label": "Upsampled resolution", "value": "upsampled"},
+                    {"label": "Original", "value": "original"},
+                    {"label": "Upsampled", "value": "upsampled"},
                 ],
                 value="original",
-                inline=False,
+                inline=True,
                 className="mb-3",
+            ),
+            html.Div(
+                id="band-select-div",
+                style={"display": "none"},
+                children=[
+                    html.P("Band:"),
+                    dbc.RadioItems(
+                        id="band-select",
+                        options=["SFED", "MFED"],
+                        value="SFED",
+                        inline=True,
+                        className="mb-3",
+                    ),
+                ],
             ),
         ],
         style={

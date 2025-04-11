@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -51,6 +52,65 @@ def blank_plot(center_text=None):
     return fig
 
 
+def plot_floodscan_timeseries(df, issued_date, stat="mean"):
+    cur_year = datetime.strptime(issued_date, "%Y-%m-%d").year
+
+    fig = go.Figure()
+    unique_group = sorted(df["group"].unique())
+
+    # Add a trace for each year
+    for group in unique_group:
+        year_data = df[df["group"] == group]
+        year_end = list(year_data["valid_year"])[-1]
+
+        color = "#c25048" if year_end == cur_year else "#f7a29c"
+        width = 4 if year_end == cur_year else 1
+
+        fig.add_trace(
+            go.Scatter(
+                x=year_data["month_day"],
+                y=year_data[stat],
+                mode="lines",
+                name=str(year_end),
+                line=dict(color=color, width=width),
+                hovertemplate="<b>Valid Date:</b> %{x}<br>"
+                + "<b>Value:</b> %{y:.3f}<extra></extra>",
+            )
+        )
+
+    # Add a point just for the recent update
+    df["valid_date"] = pd.to_datetime(df["valid_date"])
+    df_single = df[df["valid_date"] == issued_date]
+    fig.add_trace(
+        go.Scatter(
+            x=df_single["month_day"],
+            y=df_single[stat],
+            mode="markers",
+            marker_size=15,
+            name="Selected point",
+            marker_color="#c25048",
+        )
+    )
+    fig.update_layout(
+        template="simple_white",
+        xaxis_title="Date",
+        yaxis_title=stat,
+        legend_title_text="Year",
+    )
+
+    fig.update_layout(
+        legend=dict(traceorder="reversed"),
+        margin={"l": 0, "r": 0, "t": 50, "b": 10},
+        font=dict(
+            family="Source Sans Pro, sans-serif",
+            color="#888888",  # Colors all text
+        ),
+        title=f"{stat.capitalize()} of Floodscan flooded fraction",
+    )
+
+    return fig
+
+
 def plot_seas5_timeseries(df, issued_date, stat="mean"):
     cur_year = datetime.strptime(issued_date, "%Y-%m-%d").year
 
@@ -83,7 +143,7 @@ def plot_seas5_timeseries(df, issued_date, stat="mean"):
         yaxis_title=stat,
         legend_title_text="Year",
         height=350,
-        title=f"{stat.capitalize()} of precipitation (mm/day) across forecast leadtimes",
+        title=f"{stat.capitalize()} of SEAS5 precipitation (mm/day) across forecast leadtimes",
     )
 
     fig.update_layout(
@@ -98,27 +158,27 @@ def plot_seas5_timeseries(df, issued_date, stat="mean"):
     return fig
 
 
-def plot_cogs(da):
-    fig = px.imshow(
-        da.values,
-        color_continuous_scale="Blues",
-        template="simple_white",
-        facet_col=0,
-        facet_col_wrap=4,
-        labels={
-            "color": "mm/day"  # TODO: Hard-coded units
-        },
-    )
-    for annotation in fig.layout.annotations:
-        lead_time = annotation.text.split("=")[1]
-        annotation.text = (
-            f"Leadtime: {lead_time} months"  # TODO: Hard-coded units
+def plot_cogs(da, title):
+    units = da.attrs["units"]
+    # Eg. if leadtime dimension
+    if len(da.shape) == 3:
+        fig = px.imshow(
+            da.values,
+            color_continuous_scale="Blues",
+            template="simple_white",
+            facet_col=0,
+            facet_col_wrap=4,
+            labels={"color": units},
         )
-
-    fig.update_traces(
-        hovertemplate="%{z:.4f} mm/day<extra></extra>"  # TODO: Hard-coded units
-    )
-
+    elif len(da.shape) == 2:
+        fig = px.imshow(
+            da.values,
+            color_continuous_scale="Blues",
+            template="simple_white",
+            labels={"color": units},
+            zmin=0,
+            zmax=1,
+        )
     fig.update_layout(
         margin={"l": 20, "r": 0, "t": 50, "b": 10},
         height=350,
@@ -126,8 +186,16 @@ def plot_cogs(da):
             family="Source Sans Pro, sans-serif",
             color="#888888",  # Colors all text
         ),
-        title="Pixelwise precipitation (mm/day) across leadtimes",
+        title=title,
     )
+
+    # This only shows up now for SEAS5
+    leadtime_units = da.attrs["leadtime_units"]
+    for annotation in fig.layout.annotations:
+        lead_time = annotation.text.split("=")[1]
+        annotation.text = f"Leadtime: {lead_time} {leadtime_units}"
+
+    fig.update_traces(hovertemplate=f"%{{z:.4f}} {units}<extra></extra>")
     fig.update_xaxes(showline=False, ticks="", showticklabels=False)
     fig.update_yaxes(showline=False, ticks="", showticklabels=False)
     return fig

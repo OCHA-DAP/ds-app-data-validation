@@ -15,7 +15,7 @@ def open_seas5_cog(issued_date_str: str, lt: int):
     )
 
 
-def open_seas5_rasters(issued_date_str: str, gdf):
+def open_seas5_rasters(issued_date_str: str):
     das = []
     for lt in range(0, 7):
         da_in = open_seas5_cog(issued_date_str, lt)

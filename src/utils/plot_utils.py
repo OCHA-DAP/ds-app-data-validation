@@ -158,8 +158,9 @@ def plot_seas5_timeseries(df, issued_date, stat="mean"):
     return fig
 
 
-def plot_cogs(da, title):
-    units = da.attrs["units"]
+def plot_cogs(da, title, units=None, leadtime_units=None):
+    if not units:
+        units = da.attrs["units"]
     # Eg. if leadtime dimension
     if len(da.shape) == 3:
         fig = px.imshow(
@@ -190,7 +191,6 @@ def plot_cogs(da, title):
     )
 
     # This only shows up now for SEAS5
-    leadtime_units = da.attrs["leadtime_units"]
     for annotation in fig.layout.annotations:
         lead_time = annotation.text.split("=")[1]
         annotation.text = f"Leadtime: {lead_time} {leadtime_units}"

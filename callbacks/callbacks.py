@@ -162,9 +162,13 @@ def register_callbacks(app):
                 if dataset == "seas5":
                     title = "Pixelwise precipitation (mm/day) across leadtimes"
                     da = seas5.open_seas5_rasters(issue_date)
+                    units = "mm/day"
+                    leadtime_units = "months"
                 elif dataset == "floodscan":
                     title = "Pixelwise flooded fraction"
                     da = floodscan.open_floodscan_rasters(issue_date, band)
+                    units = "flood fraction"
+                    leadtime_units = None
                 else:
                     return plot_utils.blank_plot("Invalid dataset")
             except RasterioIOError:
@@ -180,5 +184,5 @@ def register_callbacks(app):
                 return plot_utils.blank_plot("No data in bounds")
 
             # Now plot
-            return plot_utils.plot_cogs(da, title)
+            return plot_utils.plot_cogs(da, title, units, leadtime_units)
         return plot_utils.blank_plot("Select AOI from dropdowns")

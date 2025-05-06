@@ -13,7 +13,7 @@ def get_date_range(dataset):
     frequency = date_ranges[dataset]["frequency"]
     today = date.today()
     if dataset == "seas5":
-        if today.day <= 6:
+        if today.day < 6:
             if today.month == 1:
                 end_date = date(today.year - 1, 12, 1)
             else:
